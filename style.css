@@ -1,0 +1,116 @@
+* { 
+  box-sizing: border-box; 
+}
+
+body { 
+  font-family: "Prompt", sans-serif; 
+  margin: 0; 
+  background: #f4f8f0; 
+  color: #333;
+}
+
+header {
+  background: #2e7d32;
+  color: white;
+  text-align: center;
+  padding: 12px 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+h1 { 
+  margin: 0; 
+  font-size: 22px; 
+  font-weight: 600; 
+}
+
+#map { 
+  height: 50vh; 
+  background: #e0f2fe; 
+}
+
+#panel { 
+  padding: 16px; 
+  max-width: 600px; 
+  margin: 0 auto; 
+  font-size: 16px;
+}
+
+.province-label {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  font-size: 11px;
+  font-weight: 500;
+  color: #1b5e20;
+}
+
+.province-label::before { 
+  display: none; 
+}
+
+.card { 
+  background: #ffffff; 
+  border-left: 4px solid #4caf50;
+  border-radius: 8px;
+  padding: 10px 14px; 
+  margin: 8px 0; 
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.advice { 
+  background: #fff8e1; 
+  border: 1px solid #ffe082;
+  border-radius: 8px;
+  padding: 12px; 
+  margin-top: 12px; 
+}
+
+button { 
+  font-family: "Prompt", sans-serif;
+  font-size: 14px;
+  padding: 8px 14px; 
+  margin: 4px;
+  border-radius: 20px; 
+  border: 1px solid #4caf50;
+  background: #e8f5e9;
+  color: #2e7d32;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+button:hover { 
+  background: #4caf50; 
+  color: white; 
+}
+
+button.btn-back { 
+  background: #eee; 
+  border-color: #ccc; 
+  color: #555; 
+}
+
+select { 
+  font-family: "Prompt", sans-serif;
+  font-size: 14px;
+  padding: 8px; 
+  border-radius: 6px; 
+  border: 1px solid #ccc;
+  margin-right: 6px;
+}
+
+small { 
+  color: #666; 
+  font-size: 12px; 
+  display: block; 
+  margin-top: 8px; 
+}
+
+.badge-ph {
+  background: #2e7d32;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+}

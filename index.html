@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Siamsoil - ดินเพื่อการเกษตรที่ยั่งยืน</title>
+
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <header>
+    <h1>🌱 Siamsoil</h1>
+  </header>
+  
+  <div id="map"></div>
+  <div id="panel">👆 แตะจังหวัดสีเขียวบนแผนที่เพื่อดูข้อมูลค่าดิน</div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const plants = [
+      { name: "ข้าว",         icon: "🌾", min: 5.5, max: 7.3 },
+      { name: "ข้าวโพด",      icon: "🌽", min: 5.1, max: 7.3 },
+      { name: "สับปะรด",      icon: "🍍", min: 4.5, max: 6.0 },
+      { name: "ชา",           icon: "🍵", min: 4.5, max: 5.5 },
+      { name: "มะม่วง",       icon: "🥭", min: 5.6, max: 7.3 },
+      { name: "พริก",         icon: "🌶️", min: 6.0, max: 7.0 },
+      { name: "หน่อไม้ฝรั่ง",  icon: "🌿", min: 6.5, max: 7.5 }
+    ];
+
+    const soilData = {
+      "นครปฐม":      { "เมืองนครปฐม": 6.4, "กำแพงแสน": 6.0, "สามพราน": 6.8, "บางเลน": 5.9 },
+      "เชียงใหม่":    { "เมืองเชียงใหม่": 5.8, "ฝาง": 5.2, "สันกำแพง": 6.1 },
+      "ขอนแก่น":     { "เมืองขอนแก่น": 5.4, "น้ำพอง": 5.7, "ชุมแพ": 5.9 },
+      "สุราษฎร์ธานี": { "เมืองสุราษฎร์ธานี": 4.9, "กาญจนดิษฐ์": 5.1, "เกาะสมุย": 5.5 },
+      "จันทบุรี":     { "เมืองจันทบุรี": 5.5, "ท่าใหม่": 5.3, "มะขาม": 5.5 }
+    };
+
+    let currentPh = 0;
+    const map = L.map("map");
+    const GEO_URL = "https://raw.githubusercontent.com/chingchai/OpenGISData-Thailand/master/provinces.geojson";
+
+    fetch(GEO_URL)
+      .then(res => res.json())
+      .then(geo => {
+        const layer = L.geoJSON(geo, {
+          style: f => ({
+            color: "#ffffff",
+            weight: 1.5,
+            fillColor: soilData[f.properties.pro_th] ? "#43a047" : "#cfd8dc",
+            fillOpacity: 0.85
+          }),
+          onEachFeature: (f, lyr) => {
+            const name = f.properties.pro_th;
+            if (soilData[name]) {
+              lyr.bindTooltip(name, {
+                permanent: true,
+                direction: "center",
+                className: "province-label"
+              });
+            }
+            lyr.on("click", () => showProvince(name));
+          }
+        }).addTo(map);
+        map.fitBounds(layer.getBounds());
+      })
+      .catch(err => alert("โหลดแผนที่ไม่ได้: " + err));
+
+    function showProvince(name) {
+      const panel = document.getElementById("panel");
+      const province = soilData[name];
+      if (!province) {
+        panel.innerHTML = `<h3>📍 จังหวัด${name}</h3><p>🚧 กำลังรวบรวมข้อมูลพื้นที่นี้เพิ่มเติม</p>`;
+        return;
+      }
+      let html = `<h3>📍 จังหวัด${name}</h3><p>เลือกอำเภอเพื่อดูรายละเอียด:</p>`;
+      for (const district in province) {
+        html += `<button onclick="showDistrict('${name}','${district}')">${district}</button>`;
+      }
+      panel.innerHTML = html;
+    }
+
+    function showDistrict(province, district) {
+      currentPh = soilData[province][district];
+      let html = `<button class="btn-back" onclick="showProvince('${province}')">⬅ ย้อนกลับ</button>`;
+      html += `<h3>🏡 อ.${district} (จ.${province})</h3>`;
+      html += `<p>ค่า pH ของดินโดยประมาณ: <span class="badge-ph">${currentPh}</span></p>`;
+      html += `<p><b>🌱 พืชที่เหมาะกับดินนี้:</b></p><div>`;
+      
+      let found = false;
+      for (const p of plants) {
+        if (currentPh >= p.min && currentPh <= p.max) {
+          html += `<div class="card">${p.icon} ${p.name}</div>`;
+          found = true;
+        }
+      }
+      if (!found) html += `<div>ไม่มีพืชในรายการที่เหมาะโดยตรง</div>`;
+      html += `</div>`;
+      
+      html += `<hr style="border:none; border-top:1px solid #eee; margin:15px 0;">`;
+      html += `<p><b>🤔 วางแผนจะปลูกพืชอื่น?</b></p>`;
+      html += `<select id="want">`;
+      for (const p of plants) html += `<option>${p.name}</option>`;
+      html += `</select><button onclick="advise()">คำนวณวิธีปรับดิน</button>`;
+      html += `<div id="advice"></div>`;
+      html += `<small>* หมายเหตุ: ค่า pH เป็นเพียงค่าประมาณ ควรส่งตรวจ sample ดินจริงก่อนทำการเกษตร</small>`;
+      
+      document.getElementById("panel").innerHTML = html;
+    }
+
+    function advise() {
+      const wanted = document.getElementById("want").value;
+      const p = plants.find(x => x.name === wanted);
+      let msg = "";
+      if (currentPh >= p.min && currentPh <= p.max) {
+        msg = `✅ <b>สภาพดินเหมาะกับ ${p.name} อยู่แล้ว</b> ไม่จำเป็นต้องปรับค่า pH`;
+      } else if (currentPh < p.min) {
+        const diff = (p.min - currentPh).toFixed(1);
+        msg = `⚠️ <b>ดินเป็นกรดเกินไปสำหรับ ${p.name}</b> (ต้องการ pH อีกประมาณ ${diff})<br>
+               💡 <b>คำแนะนำ:</b> ใส่ปูนขาว (Calcium Hydroxide) หรือโดโลไมต์ เพื่อช่วยลดความเป็นกรดของดิน`;
+      } else {
+        const diff = (currentPh - p.max).toFixed(1);
+        msg = `⚠️ <b>ดินเป็นด่างเกินไปสำหรับ ${p.name}</b> (ต้องลด pH ลงประมาณ ${diff})<br>
+               💡 <b>คำแนะนำ:</b> ใส่กำมะถันผง หรือเพิ่มอินทรียวัตถุ/ปุ๋ยหมัก เพื่อเพิ่มความเป็นกรดให้ดิน`;
+      }
+      msg += `<br><small>ปริมาณที่ใช้ขึ้นอยู่กับโครงสร้างเนื้อดิน ควรปรึกษาเกษตรอำเภอในพื้นที่</small>`;
+      document.getElementById("advice").innerHTML = `<div class="advice">${msg}</div>`;
+    }
+  </script>
+</body>
+</html>
